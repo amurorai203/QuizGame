@@ -16,19 +16,18 @@ var correctCount = 0;
 var currentQuestionTimeLeft = allowTimePerQuestion;
 var scoreList = [];
 
+// Init function to load Score result from localStorage
 function init(){
     scoreList = JSON.parse(localStorage.getItem("GameScoreResult"));
     if (scoreList === null){
         scoreList = [];
     }
-    console.log(scoreList);
+//    console.log(scoreList);
 }
 
 function startGame(){
-// trigger timer
+    // Define total seconds for the game
     secondsLeft = quizQuestions.length * allowTimePerQuestion;
-    timerObj.textContent = secondsLeft + " seconds left";
-
     
     if (quizQuestions.length > 0){
         startScreenObj.innerHTML = "";
@@ -39,38 +38,34 @@ function startGame(){
     }
 
     var timerInterval = setInterval(function() {
+        // Print time left for the game 
         timerObj.textContent = secondsLeft + " seconds left";
-        // console.log(secondsLeft + " "+ allowTimePerQuestion + " " + secondsLeft % allowTimePerQuestion + "|" + currentQuestionTimeLeft);
-
-        if (secondsLeft % allowTimePerQuestion === 0 || answered) {
+        // Define criteria for loading next question(Current question timeout, total time runs out, question being answered)
+        if (secondsLeft % allowTimePerQuestion === 0 || currentQuestionTimeLeft === 0 || answered) {
         // Stops execution of action at set interval
-            if (currentQuestionTimeLeft === 0){
-                validateAnswer(currentQuestion);
-                console.log(secondsLeft);
-                if (secondsLeft != 0){
-                    currentQuestion++;
-                    rendorQuestion(currentQuestion);
+            if (secondsLeft <= 0){
+                timerObj.textContent = "0 seconds left";
+                clearInterval(timerInterval);
+                endGame();
+            };
+            if (currentQuestionTimeLeft === 0 && secondsLeft > 0){
+                currentQuestion++;
+                rendorQuestion(currentQuestion);
+                // If last question, use all time left as the remaining time
+                if (currentQuestion < quizQuestions.length - 1) {
                     currentQuestionTimeLeft = allowTimePerQuestion;
                 } else {
-                    clearInterval(timerInterval);
-                    endGame();
+                    currentQuestionTimeLeft = secondsLeft;
                 }
             }
         }        
-         else {
-
-        }
         secondsLeft--;
         currentQuestionTimeLeft--;
-        if (secondsLeft === 0) {
-            timerObj.textContent = "0 seconds left";
-            clearInterval(timerInterval);
-            endGame();
-        }
     }, 1000);
 }
 
 function displayResult(result){
+    // Print out the correct or incorrect message on screen
     var seperator = document.createElement("h3");
     seperator.textContent = "----------------------------------------";
     choiceAvailable.appendChild(seperator);
@@ -84,17 +79,21 @@ function displayResult(result){
 }
 
 function answerCorrect(){
+    // Print correct sound
     var audio = new Audio("./assets/sfx/correct.wav");
     audio.play();
+    // Set value and display result
     currentQuestionTimeLeft = 0;
     correctCount++;
     displayResult(true);
 }
 
 function answerIncorrect(){
+    // Print incorrect sound
     var audio = new Audio("./assets/sfx/incorrect.wav");
     audio.play();
     secondsLeft = secondsLeft - reduceTimeWhenWrong;
+    // Set value and display result
     currentQuestionTimeLeft = 0;
     wrongCount++;
     displayResult(false);
@@ -102,18 +101,18 @@ function answerIncorrect(){
 
 function rendorQuestion(questionNumber){
     // load question and answers array
-    // console.log("rendor Question " + questionNumber);
+    // Stop if last question
     if (questionNumber >= quizQuestions.length){
         endGame();
         return;
     }
     questionObj.setAttribute("class", "show");
     answered = false;
+    // Print question on screen
     var questionTitle = document.querySelector("#question-title");
     questionTitle.textContent = quizQuestions[questionNumber].question;
-
     choiceAvailable.innerHTML = "";
-
+    // Print choices on screen
     for (let i=0;i<quizQuestions[questionNumber].answers.length;i++){
         var choiceItem = document.createElement("div");
         choiceItem.textContent = quizQuestions[questionNumber].answers[i];
@@ -121,30 +120,26 @@ function rendorQuestion(questionNumber){
     }
 }
 
-function validateAnswer(questionNumber){
-    console.log("Validate Question " + questionNumber);
-}
-
 function endGame(){
-    secondsLeft = 1;
-    console.log("End Game");
+    secondsLeft = 0;
+    answered = true;
     questionObj.innerHTML = "";
     document.querySelector("#final-score").textContent = correctCount;
     endScreenObj.setAttribute("class", "show");
 }
 
 startButtonObj.addEventListener("click", function(event){
+    // Trigger to start the game
     startGame();
 })
 
 choiceAvailable.addEventListener("click", function(event){
     var element = event.target;
-    // console.log("Validate " + currentQuestion, + " " + quizQuestions[currentQuestion].correctAnswerIndex + " " + quizQuestions[currentQuestion].answers[quizQuestions[currentQuestion].correctAnswerIndex - 1]);
-
-    // If that element is a button...
+    // check the click on the answer
     if (element.matches("div") === true) {
         var userSelection = element.textContent;
         answered = true;
+        // Decide if correct answer
         if (quizQuestions[currentQuestion].answers[quizQuestions[currentQuestion].correctAnswerIndex - 1] === userSelection){
             console.log("Correct");
             answerCorrect();
@@ -159,6 +154,7 @@ choiceAvailable.addEventListener("click", function(event){
 })
 
 submitButtonObj.addEventListener("click", function(event){
+    // Prepare and save the current result into loadStorage
     var thisResult = document.querySelector("#initials").value + " - " + correctCount
     scoreList.push(thisResult);
     localStorage.setItem("GameScoreResult", JSON.stringify(scoreList) );

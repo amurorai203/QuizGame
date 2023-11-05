@@ -87,6 +87,7 @@ li:nth-child(odd) {
   right: 10px;
 }
 
+/* Define answers style */
 .choices div {
   /* border:  */
   background-color: blue;
@@ -97,15 +98,18 @@ li:nth-child(odd) {
   border-radius: 15%;
 }
 
+/* Highlight answer when mouse over */
 .choices div:hover {
   background-color: lightblue;
 }
 
+/* Define answer result font color and style */
 .choices h3 {
-  color: lightblue;
+  color: purple;
   font-style: italic;
 }
 
+/* Define highscore background color */
 #highscores ul {
   background-color: lightblue;
 }
